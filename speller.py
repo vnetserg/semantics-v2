@@ -1,10 +1,10 @@
-#!/usr/bin/python3.4
+#!/usr/bin/python3.5
 # -*- coding: utf-8 -*-
 
 import argparse, requests, json
 import pandas as ps
 
-from prepare import filter_by_cluster
+import time
 
 '''
     Модуль проверки орфографии сообщений с помощью сервиса Яндекс.Спеллер.
@@ -34,6 +34,7 @@ def yandex_speller(texts):
         params = {'text': texts[i:i+5], 'lang': 'ru'}
         resp = requests.get('http://speller.yandex.net/services/spellservice.json/checkTexts', params=params)
         res += json.loads(resp.text)
+        time.sleep(0.1)
     return res
 
 def edit_orphography(data):
@@ -68,13 +69,10 @@ def main():
         metavar="FILE", default=None)
     parser.add_argument("-n", "--number", help="число записей для обработки",
         metavar="NUMBER", default=0, type=int)
-    parser.add_argument("-f", "--filter", help="отфильтровать записи без кластера", action="store_true")
     args = parser.parse_args()
 
     data = ps.read_csv(args.file, sep=';', header=None, index_col=0,
         names=['id','title','text','cluster','time','publisher'])
-    if args.filter:
-        data = filter_by_cluster(data)
     if args.number > 0:
         data = data[:args.number]
     data, log = edit_orphography(data)
